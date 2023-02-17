@@ -4,4 +4,34 @@
   padding: 0;
 }
 
-// TODO
+:root {
+  --white: #fff;
+  --heading: #F8F8F8;
+  --highlight: #FF57B2;
+  --bg: #1A1D23;
+  --info: #BBBBBB;
+  --body: #D7D7D7;
+}
+
+html {
+  font-size: 62.5%;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--body);
+}
+
+
+body,
+input,
+textarea,
+select,
+button {
+  font: 400 1.6rem 'Inter', sans-serif;
+}
+
+a{
+  text-decoration: none;
+  color: inherit
+}
