@@ -139,7 +139,6 @@ export const getStaticProps: GetStaticProps = async () => {
 
   const next_page = postResponse.next_page
 
-  console.log(next_page)
 
   const postsPagination = {
     results: posts,
