@@ -1,14 +1,15 @@
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { GetStaticProps } from 'next';
-import Header from '../components/Header';
 
-import { getPrismicClient } from '../services/prismic';
-import { FiCalendar, FiUser } from 'react-icons/fi'
-import { format } from 'date-fns'
-import commonStyles from '../styles/common.module.scss';
-import styles from './home.module.scss';
-import Link from 'next/link'
+import { FiCalendar, FiUser } from 'react-icons/fi';
+import { format } from 'date-fns';
+import Link from 'next/link';
 import ptBR from 'date-fns/locale/pt-BR';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import styles from './home.module.scss';
+import { getPrismicClient } from '../services/prismic';
+import Header from '../components/Header';
 
 interface Post {
   uid?: string;
@@ -31,25 +32,34 @@ interface HomeProps {
 
 export default function Home({ postsPagination }: HomeProps) {
   const [posts, setPosts] = useState<Post[]>([]);
+  const [nextPage, setNextPage] = useState(postsPagination.next_page);
 
   function fetchNextPage() {
-    fetch(postsPagination.next_page)
-      .then((res => res.json()))
-      .then((res) => {
-        return res.results.map((post) => {
+    if (nextPage === null) return;
+    fetch(nextPage)
+      .then(res => res.json())
+      .then(res => {
+        setNextPage(res.next_page);
+
+        return res.results.map(post => {
           return {
             uid: post.uid,
-            first_publication_date: format(new Date(post.first_publication_date), "dd  MMM yyyy", {
-              locale: ptBR,
-            }),
+            first_publication_date: format(
+              new Date(post.first_publication_date),
+              'dd  MMM yyyy',
+              {
+                locale: ptBR,
+              }
+            ),
             data: {
               title: post.data.title,
               subtitle: post.data.subtitle,
               author: post.data.author,
-            }
-          }
-        })
-      }).then((res) => setPosts(res))
+            },
+          };
+        });
+      })
+      .then(res => setPosts(prevState => [...prevState, ...res]));
   }
 
   return (
@@ -58,7 +68,7 @@ export default function Home({ postsPagination }: HomeProps) {
 
       <div className={styles.main}>
         <main className={styles.container}>
-          {postsPagination.results?.map((post) => (
+          {postsPagination.results?.map(post => (
             <Link href={`/post/${post.uid}`} key={post.uid}>
               <a>
                 <h2>{post.data.title}</h2>
@@ -68,9 +78,13 @@ export default function Home({ postsPagination }: HomeProps) {
                 <div className={styles.contentIcons}>
                   <div>
                     <FiCalendar size={20} fontWeight={800} />
-                    {format(new Date(post.first_publication_date), 'dd MMM yyyy', {
-                      locale: ptBR,
-                    })}
+                    {format(
+                      new Date(post.first_publication_date),
+                      'dd MMM yyyy',
+                      {
+                        locale: ptBR,
+                      }
+                    )}
                   </div>
 
                   <div>
@@ -82,8 +96,8 @@ export default function Home({ postsPagination }: HomeProps) {
             </Link>
           ))}
 
-          {posts.map((post) => (
-            <Link href={post.uid} key={post.uid}>
+          {posts.map(post => (
+            <Link href={`/post/${post.uid}`} key={post.uid}>
               <a>
                 <h2>{post.data.title}</h2>
 
@@ -104,28 +118,22 @@ export default function Home({ postsPagination }: HomeProps) {
             </Link>
           ))}
 
-          {postsPagination.next_page !== null ? (
-            <button onClick={fetchNextPage}>
+          {nextPage && (
+            <button onClick={fetchNextPage} type="button">
               Carregar mais posts
             </button>
-          ) :
-            (
-              <button onClick={fetchNextPage} >
-                Carregar mais posts
-              </button>
-            )
-          }
+          )}
         </main>
       </div>
     </>
-  )
+  );
 }
 
 export const getStaticProps: GetStaticProps = async () => {
   const prismic = getPrismicClient({});
-  const postResponse = await prismic.getByType('posts', { pageSize: 1 })
+  const postResponse = await prismic.getByType('posts', { pageSize: 1 });
 
-  const posts = postResponse.results.map((post) => {
+  const posts = postResponse.results.map(post => {
     return {
       uid: post.uid,
       first_publication_date: post.first_publication_date,
@@ -133,22 +141,20 @@ export const getStaticProps: GetStaticProps = async () => {
         title: post.data.title,
         subtitle: post.data.subtitle,
         author: post.data.author,
-      }
-    }
-  })
+      },
+    };
+  });
 
-  const next_page = postResponse.next_page
-
+  const { next_page } = postResponse;
 
   const postsPagination = {
     results: posts,
-    next_page
-  }
-
+    next_page,
+  };
 
   return {
     props: {
-      postsPagination
-    }
-  }
+      postsPagination,
+    },
+  };
 };

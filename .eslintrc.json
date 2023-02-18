@@ -37,6 +37,7 @@
     "prettier/prettier": "error",
     "react/react-in-jsx-scope": "off",
     "react/prop-types": "off",
+    "typescript/explicit-module-boundary-types": "off",
     "jsx-a11y/anchor-is-valid": [
       "error",
       {
